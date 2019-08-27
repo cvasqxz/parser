@@ -8,6 +8,7 @@ import (
 )
 
 var folder = ".chaucha"
+var genesis = "6e27bffd2a104bea1c870be76aab1cce13bebb0db40606773827517da9528174"
 
 var magicBytes = []byte{170, 162, 38, 169}
 var readHash = make([]byte, 32)

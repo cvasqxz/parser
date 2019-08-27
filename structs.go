@@ -1,6 +1,11 @@
 package main
 
+type Blockchain struct {
+	Block []Block
+}
+
 type Block struct {
+	Height       int
 	Hash         string
 	Header       BlockHeader
 	Transactions []Transaction

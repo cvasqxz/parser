@@ -3,10 +3,11 @@ package main
 import (
 	"bytes"
 	"encoding/hex"
+	"fmt"
 	"os"
 )
 
-func parseBlockFile(f *os.File) {
+func parseBlockFile(f *os.File, blockchain *Blockchain, lastHeight *int, lastBlock *string) {
 	for true {
 		block := Block{}
 		header := BlockHeader{}
@@ -105,9 +106,18 @@ func parseBlockFile(f *os.File) {
 				block.Transactions = append(block.Transactions, tx)
 			}
 
-			//blockJSON, err := json.Marshal(block)
-			//errorHandler(err)
-			//fmt.Println(string(blockJSON))
+			blockchain.Block = append(blockchain.Block, block)
+
+			for i := len(blockchain.Block) - 1; i >= int(len(blockchain.Block)*8/10); i-- {
+				block = blockchain.Block[i]
+				if block.Header.PrevBlockHash == *lastBlock {
+					*lastHeight++
+					*lastBlock = block.Hash
+					block.Height = *lastHeight
+					fmt.Println(*lastHeight, *lastBlock)
+					break
+				}
+			}
 
 		} else {
 			break
