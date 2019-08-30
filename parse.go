@@ -53,8 +53,10 @@ func parseBlockFile(f *os.File, blockchain *Blockchain, db *leveldb.DB) {
 			f.Read(read4)
 			rawHeader += string(read4)
 
+			// Raw header to calculate block Hash
 			header.Raw = hex.EncodeToString([]byte(rawHeader))
 
+			// Block hash
 			block.Header = header
 			block.Hash = doubleSHA256(rawHeader)
 
@@ -111,14 +113,17 @@ func parseBlockFile(f *os.File, blockchain *Blockchain, db *leveldb.DB) {
 				block.Transactions = append(block.Transactions, tx)
 			}
 
+			// LevelDB key
 			reverseHeader, err := hex.DecodeString(block.Hash + "62")
 			errorHandler(err)
 
 			level, err := db.Get(reverse(reverseHeader), nil)
 
+			// Block height
 			block.Height = getHeight(level)
 			blockchain.Block = append(blockchain.Block, block)
 
+			// Get longest chain
 			if block.Height > blockchain.Tip {
 				blockchain.Tip = block.Height
 				blockchain.bestBlockHash = block.Hash
