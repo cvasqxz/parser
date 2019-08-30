@@ -28,6 +28,24 @@ func doubleSHA256(slice string) string {
 
 }
 
+func getHeight(s []byte) int {
+	firstByte := byte2int(s[4:5])
+	secondByte := byte2int(s[5:6])
+	thirdByte := byte2int(s[6:7])
+
+	height := firstByte
+
+	if firstByte >= 128 {
+		height = (firstByte-127)*128 + secondByte
+		if secondByte >= 128 {
+			height = (firstByte-127)*128*128 + (secondByte-127)*128 + thirdByte
+		}
+	}
+
+	return height
+
+}
+
 func byte2int(slice []byte) int {
 	data := uint64(0)
 	for _, b := range slice {

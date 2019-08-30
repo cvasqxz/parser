@@ -5,13 +5,18 @@ import (
 	"encoding/hex"
 	"fmt"
 	"os"
+
+	"github.com/syndtr/goleveldb/leveldb"
 )
 
-func parseBlockFile(f *os.File, blockchain *Blockchain, lastHeight *int, lastBlock *string) {
+func parseBlockFile(f *os.File, blockchain *Blockchain, db *leveldb.DB) {
+
 	for true {
 		block := Block{}
 		header := BlockHeader{}
 		rawHeader := ""
+
+		block.Processed = false
 
 		// Magic Number
 		f.Read(read4)
@@ -106,19 +111,22 @@ func parseBlockFile(f *os.File, blockchain *Blockchain, lastHeight *int, lastBlo
 				block.Transactions = append(block.Transactions, tx)
 			}
 
+			reverseHeader, err := hex.DecodeString(block.Hash + "62")
+			errorHandler(err)
+
+			level, err := db.Get(reverse(reverseHeader), nil)
+
+			block.Height = getHeight(level)
 			blockchain.Block = append(blockchain.Block, block)
 
-			for i := len(blockchain.Block) - 1; i >= int(len(blockchain.Block)*8/10); i-- {
-				block = blockchain.Block[i]
-				if block.Header.PrevBlockHash == *lastBlock {
-					*lastHeight++
-					*lastBlock = block.Hash
-					block.Height = *lastHeight
-					fmt.Println(*lastHeight, *lastBlock)
-					break
-				}
+			if block.Height > blockchain.Tip {
+				blockchain.Tip = block.Height
+				blockchain.bestBlockHash = block.Hash
 			}
 
+			if block.Height%50000 == 0 {
+				fmt.Println(block.Height, "Block processed")
+			}
 		} else {
 			break
 		}
