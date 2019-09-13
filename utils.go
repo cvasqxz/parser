@@ -3,8 +3,11 @@ package main
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"io"
+	"io/ioutil"
 	"log"
 	"os"
+	"path/filepath"
 )
 
 var folder = ".chaucha"
@@ -81,5 +84,70 @@ func readVariableInt(f *os.File) int {
 func errorHandler(err error) {
 	if err != nil {
 		log.Fatal(err)
+	}
+}
+
+func CopyFile(src, dst string) {
+	in, err := os.Open(src)
+	errorHandler(err)
+	defer in.Close()
+
+	out, err := os.Create(dst)
+	errorHandler(err)
+	defer func() {
+		if e := out.Close(); e != nil {
+			err = e
+		}
+	}()
+
+	_, err = io.Copy(out, in)
+	errorHandler(err)
+
+	err = out.Sync()
+	errorHandler(err)
+
+	si, err := os.Stat(src)
+	errorHandler(err)
+	err = os.Chmod(dst, si.Mode())
+	errorHandler(err)
+}
+
+func CopyDir(src string, dst string) {
+	src = filepath.Clean(src)
+	dst = filepath.Clean(dst)
+
+	si, err := os.Stat(src)
+	errorHandler(err)
+
+	if !si.IsDir() {
+		log.Println("source is not a directory")
+	}
+
+	_, err = os.Stat(dst)
+	errorHandler(err)
+
+	if err == nil {
+		log.Println("destination already exists")
+	}
+
+	err = os.MkdirAll(dst, si.Mode())
+	errorHandler(err)
+
+	entries, err := ioutil.ReadDir(src)
+	errorHandler(err)
+
+	for _, entry := range entries {
+		srcPath := filepath.Join(src, entry.Name())
+		dstPath := filepath.Join(dst, entry.Name())
+
+		if entry.IsDir() {
+			CopyDir(srcPath, dstPath)
+		} else {
+			// Skip symlinks.
+			if entry.Mode()&os.ModeSymlink != 0 {
+				continue
+			}
+			CopyFile(srcPath, dstPath)
+		}
 	}
 }

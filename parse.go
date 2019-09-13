@@ -10,13 +10,10 @@ import (
 )
 
 func parseBlockFile(f *os.File, blockchain *Blockchain, db *leveldb.DB) {
-
 	for true {
 		block := Block{}
 		header := BlockHeader{}
 		rawHeader := ""
-
-		block.Processed = false
 
 		// Magic Number
 		f.Read(read4)
@@ -53,10 +50,8 @@ func parseBlockFile(f *os.File, blockchain *Blockchain, db *leveldb.DB) {
 			f.Read(read4)
 			rawHeader += string(read4)
 
-			// Raw header to calculate block Hash
-			header.Raw = hex.EncodeToString([]byte(rawHeader))
-
 			// Block hash
+			header.Raw = hex.EncodeToString([]byte(rawHeader))
 			block.Header = header
 			block.Hash = doubleSHA256(rawHeader)
 
@@ -132,6 +127,7 @@ func parseBlockFile(f *os.File, blockchain *Blockchain, db *leveldb.DB) {
 			if block.Height%50000 == 0 {
 				fmt.Println(block.Height, "Block processed")
 			}
+
 		} else {
 			break
 		}
