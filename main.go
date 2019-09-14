@@ -12,13 +12,13 @@ import (
 func main() {
 	blockchain := Blockchain{}
 	blockchain.Tip = 0
+	blockchain.Blocks = make(map[int]Block)
 
 	blocksFolder := os.Getenv("HOME") + "/" + folder + "/blocks/"
 
 	fmt.Println("Reading block indexes from", blocksFolder+"index")
 	db, err := leveldb.OpenFile(blocksFolder+"/index", nil)
 	errorHandler(err)
-	defer db.Close()
 
 	files, err := ioutil.ReadDir(blocksFolder)
 	errorHandler(err)
@@ -39,9 +39,9 @@ func main() {
 	db.Close()
 
 	fmt.Println("\nBlockchain info:")
-	fmt.Println("\t* Blocks found:", len(blockchain.Block))
+	fmt.Println("\t* Blocks found:", len(blockchain.Blocks)-1)
 	fmt.Println("\t* Longest Chain:", blockchain.Tip)
-	fmt.Println("\t* Orphan Blocks:", len(blockchain.Block)-blockchain.Tip)
+	fmt.Println("\t* Orphan Blocks:", len(blockchain.Blocks)-blockchain.Tip)
 	fmt.Println("\t* Best block Hash:", blockchain.bestBlockHash)
 	fmt.Println("")
 

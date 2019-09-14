@@ -1,14 +1,13 @@
 package main
 
 type Blockchain struct {
-	Block         []Block
+	Blocks        map[int]Block
 	Tip           int
 	bestBlockHash string
 }
 
 type Block struct {
 	Processed    bool
-	Height       int
 	Hash         string
 	Header       BlockHeader
 	Transactions []Transaction
