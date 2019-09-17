@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/otiai10/copy"
 	"github.com/syndtr/goleveldb/leveldb"
 )
 
@@ -14,10 +15,16 @@ func main() {
 	blockchain.Tip = 0
 	blockchain.Blocks = make(map[int]Block)
 
-	blocksFolder := os.Getenv("HOME") + "/" + folder + "/blocks/"
+	var err error
 
-	fmt.Println("Reading block indexes from", blocksFolder+"index")
-	db, err := leveldb.OpenFile(blocksFolder+"/index", nil)
+	err = os.RemoveAll(blocksFolder + "index_backup")
+	errorHandler(err)
+	err = copy.Copy(blocksFolder+"index", blocksFolder+"index_backup")
+	errorHandler(err)
+
+	fmt.Println("Reading block indexes from", blocksFolder+"index_backup")
+
+	db, err := leveldb.OpenFile(blocksFolder+"/index_backup", nil)
 	errorHandler(err)
 
 	files, err := ioutil.ReadDir(blocksFolder)
@@ -37,6 +44,7 @@ func main() {
 	}
 
 	db.Close()
+	os.RemoveAll(blocksFolder + "index_backup")
 
 	fmt.Println("\nBlockchain info:")
 	fmt.Println("\t* Blocks found:", len(blockchain.Blocks)-1)

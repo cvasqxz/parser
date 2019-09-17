@@ -117,11 +117,11 @@ func parseBlockFile(f *os.File, blockchain *Blockchain, db *leveldb.DB) {
 			// Block height
 			blockHeight := getHeight(level)
 
-			if val, ok := blockchain.Blocks[blockHeight]; ok {
-				fmt.Println("ORPHAN!!", block.Hash, val)
+			if _, ok := blockchain.Blocks[blockHeight]; ok {
+				fmt.Println("ORPHAN!!", block.Hash)
+			} else {
+				blockchain.Blocks[blockHeight] = block
 			}
-
-			blockchain.Blocks[blockHeight] = block
 
 			// Get longest chain
 			if blockHeight > blockchain.Tip {
